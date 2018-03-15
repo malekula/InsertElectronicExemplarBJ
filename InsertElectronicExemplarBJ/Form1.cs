@@ -31,7 +31,7 @@ namespace InsertElectronicExemplarBJ
 
 
             ElectronicExemplarInserter ec = new ElectronicExemplarInserter(PIN, comboBox1.Text);
-            ec.InsertElectronicExemplar(ElectronicExemplarType.Free);
+            ec.InsertElectronicExemplar(ElectronicExemplarType.Indoor);
 
 
 
