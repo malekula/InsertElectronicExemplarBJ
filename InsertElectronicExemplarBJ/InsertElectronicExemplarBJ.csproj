@@ -59,6 +59,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="classes\ElectronicExemplarInserter.cs" />
+    <Compile Include="classes\Log.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
