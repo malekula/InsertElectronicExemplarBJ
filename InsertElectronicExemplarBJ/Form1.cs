@@ -55,6 +55,7 @@ namespace InsertElectronicExemplarBJ
             {
                 log.WriteLog(DateTime.Now + ". Программа не смогла выполнить вставку электронной копии. Текст ошибки: " + ex.Message);
                 log.Dispose();
+                ec.Dispose();
                 MessageBox.Show("Произошла ошибка. Проверьте лог-файл _log.txt в папке с программой. " + ex.Message);
                 return;
             }

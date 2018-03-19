@@ -16,16 +16,43 @@ namespace InsertElectronicExemplarBJ
     //Order - эл. через личный кабинет
     public enum ElectronicExemplarType { Free, Indoor, Order }
     
-    class ElectronicExemplarInserter
+    class ElectronicExemplarInserter : IDisposable
     {
         private int _pin;
         private string _baseName;
+        private const int BJVVV_IDDATA_FREE = 17183938;
+        private const int BJVVV_IDDATA_INDOOR = 17183940;
+        private const int BJVVV_IDDATA_ORDER = 17183941;
+        private const int REDKOSTJ_IDDATA_FREE = 673572;
+        private const int REDKOSTJ_IDDATA_INDOOR = 673573;
+        private const int REDKOSTJ_IDDATA_ORDER = 673574;
+
+        private int IDDATA_FREE;
+        private int IDDATA_INDOOR;
+        private int IDDATA_ORDER;
+        
         public ElectronicExemplarInserter(int pin, string baseName)
         {
             this._pin = pin;
             this._baseName = baseName;
+            switch (this._baseName)//вставлять пока что можем только в эти фонды
+            {
+                case "BJVVV":
+                    IDDATA_FREE = BJVVV_IDDATA_FREE;
+                    IDDATA_INDOOR = BJVVV_IDDATA_INDOOR;
+                    IDDATA_ORDER = BJVVV_IDDATA_ORDER;
+                    break;
+                case "REDKOSTJ":
+                    IDDATA_FREE = REDKOSTJ_IDDATA_FREE;
+                    IDDATA_INDOOR = REDKOSTJ_IDDATA_INDOOR;
+                    IDDATA_ORDER = REDKOSTJ_IDDATA_ORDER;
+                    break;
+                default:
+                    throw new Exception("В этот фонд " + this._baseName + " временно не добавляются инвентари электронных копий.");
+            }
         }
-
+        private SqlConnection connection;
+        SqlTransaction transaction;
         public void InsertElectronicExemplar(ElectronicExemplarType type)
         {
             switch (this._baseName)//вставлять пока что можем только в эти фонды
@@ -38,9 +65,9 @@ namespace InsertElectronicExemplarBJ
             }
 
             string connectionString = "Data Source=127.0.0.1\\SQL2008R2;Initial Catalog=BJVVV;Persist Security Info=True;User ID=test;Password=test";
-            SqlConnection connection = new SqlConnection(connectionString);
+            this.connection = new SqlConnection(connectionString);
             connection.Open();
-            SqlTransaction transaction = connection.BeginTransaction();
+            this.transaction = connection.BeginTransaction();
             SqlCommand command = new SqlCommand();
             command.Connection = connection;
             command.Transaction = transaction;
@@ -72,10 +99,13 @@ namespace InsertElectronicExemplarBJ
             command.ExecuteNonQuery();//вставляем в DATAEXTPLAIN
 
             // у всех одно и то же метонахождение
-            command.CommandText = "insert into " + this._baseName + "..UNIWORDSEXT_RU "+
+            command.Parameters.Add("IDDATA_FREE", SqlDbType.Int).Value = IDDATA_FREE;
+            command.Parameters.Add("IDDATA_INDOOR", SqlDbType.Int).Value = IDDATA_INDOOR;
+            command.Parameters.Add("IDDATA_ORDER", SqlDbType.Int).Value = IDDATA_ORDER;
+            command.CommandText = "insert into " + this._baseName + "..UNIWORDSEXT_RU " +
                                     "(IDWORDS, IDMAIN, IDDATA, IDDATAEXT, MNFIELD, MSFIELD)"+
                                     "select IDWORDS, @pin IDMAIN, @iddata IDDATA, @iddataext IDDATAEXT, MNFIELD, MSFIELD from " + this._baseName + "..UNIWORDSEXT_RU " +
-                                    "where IDDATA = 17183938 and MNFIELD = 899 and MSFIELD = '$a'";
+                                    "where IDDATA = @IDDATA_FREE and MNFIELD = 899 and MSFIELD = '$a'";
             command.ExecuteNonQuery();
 
 
@@ -101,7 +131,7 @@ namespace InsertElectronicExemplarBJ
             command.CommandText = "insert into " + this._baseName + "..UNIWORDSEXT_RU " +
                                     "(IDWORDS, IDMAIN, IDDATA, IDDATAEXT, MNFIELD, MSFIELD)" +
                                     "select IDWORDS, @pin IDMAIN, @iddata IDDATA, @iddataext IDDATAEXT, MNFIELD, MSFIELD from " + this._baseName + "..UNIWORDSEXT_RU " +
-                                    "where IDDATA = 17183938 and MNFIELD = 899 and MSFIELD = '$b'";
+                                    "where IDDATA = @IDDATA_FREE and MNFIELD = 899 and MSFIELD = '$b'";
             command.ExecuteNonQuery();
 
             //=====================================================================================================================================
@@ -126,7 +156,7 @@ namespace InsertElectronicExemplarBJ
             command.CommandText = "insert into " + this._baseName + "..UNIWORDSEXT_RU " +
                                     "(IDWORDS, IDMAIN, IDDATA, IDDATAEXT, MNFIELD, MSFIELD)" +
                                     "select IDWORDS, @pin IDMAIN, @iddata IDDATA, @iddataext IDDATAEXT, MNFIELD, MSFIELD from " + this._baseName + "..UNIWORDSEXT_RU " +
-                                    "where IDDATA = 17183938 and MNFIELD = 921 and MSFIELD = '$a'";
+                                    "where IDDATA = @IDDATA_FREE and MNFIELD = 921 and MSFIELD = '$a'";
             command.ExecuteNonQuery();
 
             //=====================================================================================================================================
@@ -151,7 +181,7 @@ namespace InsertElectronicExemplarBJ
             command.CommandText = "insert into " + this._baseName + "..UNIWORDSEXT_RU " +
                                     "(IDWORDS, IDMAIN, IDDATA, IDDATAEXT, MNFIELD, MSFIELD) " +
                                     "select IDWORDS, @pin IDMAIN, @iddata IDDATA, @iddataext IDDATAEXT, MNFIELD, MSFIELD from " + this._baseName + "..UNIWORDSEXT_RU " +
-                                    "where IDDATA = 17183938 and MNFIELD = 921 and MSFIELD = '$c'";
+                                    "where IDDATA = @IDDATA_FREE and MNFIELD = 921 and MSFIELD = '$c'";
             command.ExecuteNonQuery();
 
             //=====================================================================================================================================
@@ -176,7 +206,7 @@ namespace InsertElectronicExemplarBJ
             command.CommandText = "insert into " + this._baseName + "..UNIWORDSEXT_RU " +
                                     "(IDWORDS, IDMAIN, IDDATA, IDDATAEXT, MNFIELD, MSFIELD)" +
                                     "select IDWORDS, @pin IDMAIN, @iddata IDDATA, @iddataext IDDATAEXT, MNFIELD, MSFIELD from " + this._baseName + "..UNIWORDSEXT_RU " +
-                      "where IDDATA = 17183938 and MNFIELD = 922 and MSFIELD = '$a'";
+                      "where IDDATA = @IDDATA_FREE and MNFIELD = 922 and MSFIELD = '$a'";
             command.ExecuteNonQuery();
 
             //=====================================================================================================================================
@@ -203,7 +233,7 @@ namespace InsertElectronicExemplarBJ
             command.CommandText = "insert into " + this._baseName + "..UNIWORDSEXT_AZ " +
                                     "(IDWORDS, IDMAIN, IDDATA, IDDATAEXT, MNFIELD, MSFIELD)" +
                                     "select IDWORDS, @pin IDMAIN, @iddata IDDATA, @iddataext IDDATAEXT, MNFIELD, MSFIELD from " + this._baseName + "..UNIWORDSEXT_AZ " +
-                      "where IDDATA = 17183938 and MNFIELD = 922 and MSFIELD = '$d'";
+                      "where IDDATA = @IDDATA_FREE and MNFIELD = 922 and MSFIELD = '$d'";
             command.ExecuteNonQuery();
 
             //=====================================================================================================================================
@@ -262,7 +292,7 @@ namespace InsertElectronicExemplarBJ
                     command.CommandText = "insert into " + this._baseName + "..UNIWORDSEXT_RU " +
                                             "(IDWORDS, IDMAIN, IDDATA, IDDATAEXT, MNFIELD, MSFIELD)" +
                                             "select IDWORDS, @pin IDMAIN, @iddata IDDATA, @iddataext IDDATAEXT, MNFIELD, MSFIELD from " + this._baseName + "..UNIWORDSEXT_RU " +
-                                            "where IDDATA = 17183938 and MNFIELD = 921 and MSFIELD = '$d'";
+                                            "where IDDATA = @IDDATA_FREE and MNFIELD = 921 and MSFIELD = '$d'";
                     SORT = "Элсвободныйдоступ";
                     PLAIN = "Эл. свободный доступ";
                     IDINLIST = 5;
@@ -271,7 +301,7 @@ namespace InsertElectronicExemplarBJ
                     command.CommandText = "insert into " + this._baseName + "..UNIWORDSEXT_RU " +
                                             "(IDWORDS, IDMAIN, IDDATA, IDDATAEXT, MNFIELD, MSFIELD)" +
                                             "select IDWORDS, @pin IDMAIN, @iddata IDDATA, @iddataext IDDATAEXT, MNFIELD, MSFIELD from " + this._baseName + "..UNIWORDSEXT_RU " +
-                                            "where IDDATA = 17183940 and MNFIELD = 921 and MSFIELD = '$d'";
+                                            "where IDDATA = @IDDATA_INDOOR and MNFIELD = 921 and MSFIELD = '$d'";
                     SORT = "Элтольковбиблиотеке";
                     PLAIN = "Эл. только в библиотеке";
                     IDINLIST = 6;
@@ -280,7 +310,7 @@ namespace InsertElectronicExemplarBJ
                     command.CommandText = "insert into " + this._baseName + "..UNIWORDSEXT_RU " +
                                             "(IDWORDS, IDMAIN, IDDATA, IDDATAEXT, MNFIELD, MSFIELD)" +
                                             "select IDWORDS, @pin IDMAIN, @iddata IDDATA, @iddataext IDDATAEXT, MNFIELD, MSFIELD from " + this._baseName + "..UNIWORDSEXT_RU " +
-                                        "where IDDATA = 17183941 and MNFIELD = 921 and MSFIELD = '$d'";
+                                        "where IDDATA = @IDDATA_ORDER and MNFIELD = 921 and MSFIELD = '$d'";
                     SORT = "Элчерезличныйкабинет";
                     PLAIN = "Эл. через личный кабинет";
                     IDINLIST = 7;
@@ -497,5 +527,15 @@ namespace InsertElectronicExemplarBJ
             da.Dispose();
 
         }
+
+        #region Члены IDisposable
+
+        public void Dispose()
+        {
+            connection.Dispose();
+            transaction.Dispose();
+        }
+
+        #endregion
     }
 }
